@@ -1,0 +1,14 @@
+{
+  "name": "chat-overlay-generator",
+  "version": "1.0.0",
+  "description": "Emoji spritesheet generator for ChatOverlay Fuse plugin for DaVinci Resolve",
+  "author": "Denys Stalenkov <denis.stalenkov@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mr-Robby/chat-generator-fuse.git"
+  },
+  "dependencies": {
+    "sharp": "^0.34.4"
+  }
+}

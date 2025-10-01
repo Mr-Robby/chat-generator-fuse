@@ -1,0 +1,2279 @@
+FuRegisterClass("ChatOverlay", CT_Tool, {
+  REGS_Name         = "ChatOverlay",
+  REGS_Category     = "Generators",
+  REGS_OpIconString = "CO",
+  REGID             = "com.denys.chatoverlay",
+  VERSION           = 24,
+})
+
+local UTF8_TABLE = {
+  [208*256 + 144] = 0x0410, -- А
+  [208*256 + 145] = 0x0411, -- Б
+  [208*256 + 146] = 0x0412, -- В
+  [208*256 + 147] = 0x0413, -- Г
+  [208*256 + 148] = 0x0414, -- Д
+  [208*256 + 149] = 0x0415, -- Е
+  [208*256 + 150] = 0x0416, -- Ж
+  [208*256 + 151] = 0x0417, -- З
+  [208*256 + 152] = 0x0418, -- И
+  [208*256 + 153] = 0x0419, -- Й
+  [208*256 + 154] = 0x041A, -- К
+  [208*256 + 155] = 0x041B, -- Л
+  [208*256 + 156] = 0x041C, -- М
+  [208*256 + 157] = 0x041D, -- Н
+  [208*256 + 158] = 0x041E, -- О
+  [208*256 + 159] = 0x041F, -- П
+  [208*256 + 160] = 0x0420, -- Р
+  [208*256 + 161] = 0x0421, -- С
+  [208*256 + 162] = 0x0422, -- Т
+  [208*256 + 163] = 0x0423, -- У
+  [208*256 + 164] = 0x0424, -- Ф
+  [208*256 + 165] = 0x0425, -- Х
+  [208*256 + 166] = 0x0426, -- Ц
+  [208*256 + 167] = 0x0427, -- Ч
+  [208*256 + 168] = 0x0428, -- Ш
+  [208*256 + 169] = 0x0429, -- Щ
+  [208*256 + 170] = 0x042A, -- Ъ
+  [208*256 + 171] = 0x042B, -- Ы
+  [208*256 + 172] = 0x042C, -- Ь
+  [208*256 + 173] = 0x042D, -- Э
+  [208*256 + 174] = 0x042E, -- Ю
+  [208*256 + 175] = 0x042F, -- Я
+  
+  -- Маленькі літери а-п
+  [208*256 + 176] = 0x0430, -- а
+  [208*256 + 177] = 0x0431, -- б
+  [208*256 + 178] = 0x0432, -- в
+  [208*256 + 179] = 0x0433, -- г
+  [208*256 + 180] = 0x0434, -- д
+  [208*256 + 181] = 0x0435, -- е
+  [208*256 + 182] = 0x0436, -- ж
+  [208*256 + 183] = 0x0437, -- з
+  [208*256 + 184] = 0x0438, -- и
+  [208*256 + 185] = 0x0439, -- й
+  [208*256 + 186] = 0x043A, -- к
+  [208*256 + 187] = 0x043B, -- л
+  [208*256 + 188] = 0x043C, -- м
+  [208*256 + 189] = 0x043D, -- н
+  [208*256 + 190] = 0x043E, -- о
+  [208*256 + 191] = 0x043F, -- п
+  
+  -- Маленькі літери р-я
+  [209*256 + 128] = 0x0440, -- р
+  [209*256 + 129] = 0x0441, -- с
+  [209*256 + 130] = 0x0442, -- т
+  [209*256 + 131] = 0x0443, -- у
+  [209*256 + 132] = 0x0444, -- ф
+  [209*256 + 133] = 0x0445, -- х
+  [209*256 + 134] = 0x0446, -- ц
+  [209*256 + 135] = 0x0447, -- ч
+  [209*256 + 136] = 0x0448, -- ш
+  [209*256 + 137] = 0x0449, -- щ
+  [209*256 + 138] = 0x044A, -- ъ
+  [209*256 + 139] = 0x044B, -- ы
+  [209*256 + 140] = 0x044C, -- ь
+  [209*256 + 141] = 0x044D, -- э
+  [209*256 + 142] = 0x044E, -- ю
+  [209*256 + 143] = 0x044F, -- я
+  
+  -- Українські символи
+  [208*256 + 132] = 0x0404, -- Є
+  [208*256 + 134] = 0x0406, -- І
+  [208*256 + 135] = 0x0407, -- Ї
+  [209*256 + 148] = 0x0454, -- є
+  [209*256 + 150] = 0x0456, -- і
+  [209*256 + 151] = 0x0457, -- ї
+  [210*256 + 144] = 0x0490, -- Ґ
+  [210*256 + 145] = 0x0491, -- ґ
+}
+
+local SPRITE_COLS = 32
+local SPRITE_ROWS = 31
+
+local EMOJI_SPRITESHEET_MAP = {
+  [":grinning_face:"] = 0,
+  [":grinning_face_with_big_eyes:"] = 1,
+  [":grinning_face_with_smiling_eyes:"] = 2,
+  [":beaming_face_with_smiling_eyes:"] = 3,
+  [":grinning_squinting_face:"] = 4,
+  [":grinning_face_with_sweat:"] = 5,
+  [":rolling_on_the_floor_laughing:"] = 6,
+  [":face_with_tears_of_joy:"] = 7,
+  [":slightly_smiling_face:"] = 8,
+  [":upside_down_face:"] = 9,
+  [":melting_face:"] = 10,
+  [":winking_face:"] = 11,
+  [":smiling_face_with_smiling_eyes:"] = 12,
+  [":smiling_face_with_halo:"] = 13,
+  [":smiling_face_with_hearts:"] = 14,
+  [":smiling_face_with_heart_eyes:"] = 15,
+  [":star_struck:"] = 16,
+  [":face_blowing_a_kiss:"] = 17,
+  [":kissing_face:"] = 18,
+  [":smiling_face:"] = 19,
+  [":kissing_face_with_closed_eyes:"] = 20,
+  [":kissing_face_with_smiling_eyes:"] = 21,
+  [":smiling_face_with_tear:"] = 22,
+  [":face_savoring_food:"] = 23,
+  [":face_with_tongue:"] = 24,
+  [":winking_face_with_tongue:"] = 25,
+  [":zany_face:"] = 26,
+  [":squinting_face_with_tongue:"] = 27,
+  [":money_mouth_face:"] = 28,
+  [":smiling_face_with_open_hands:"] = 29,
+  [":face_with_hand_over_mouth:"] = 30,
+  [":face_with_open_eyes_and_hand_over_mouth:"] = 31,
+  [":face_with_peeking_eye:"] = 32,
+  [":shushing_face:"] = 33,
+  [":thinking_face:"] = 34,
+  [":saluting_face:"] = 35,
+  [":zipper_mouth_face:"] = 36,
+  [":face_with_raised_eyebrow:"] = 37,
+  [":neutral_face:"] = 38,
+  [":expressionless_face:"] = 39,
+  [":face_without_mouth:"] = 40,
+  [":dotted_line_face:"] = 41,
+  [":face_in_clouds:"] = 42,
+  [":smirking_face:"] = 43,
+  [":unamused_face:"] = 44,
+  [":face_with_rolling_eyes:"] = 45,
+  [":grimacing_face:"] = 46,
+  [":face_exhaling:"] = 47,
+  [":⊛_shaking_face:"] = 48,
+  [":relieved_face:"] = 49,
+  [":pensive_face:"] = 50,
+  [":sleepy_face:"] = 51,
+  [":drooling_face:"] = 52,
+  [":sleeping_face:"] = 53,
+  [":face_with_medical_mask:"] = 54,
+  [":face_with_thermometer:"] = 55,
+  [":face_with_head_bandage:"] = 56,
+  [":nauseated_face:"] = 57,
+  [":face_vomiting:"] = 58,
+  [":sneezing_face:"] = 59,
+  [":hot_face:"] = 60,
+  [":cold_face:"] = 61,
+  [":woozy_face:"] = 62,
+  [":face_with_crossed_out_eyes:"] = 63,
+  [":face_with_spiral_eyes:"] = 64,
+  [":exploding_head:"] = 65,
+  [":cowboy_hat_face:"] = 66,
+  [":partying_face:"] = 67,
+  [":disguised_face:"] = 68,
+  [":smiling_face_with_sunglasses:"] = 69,
+  [":nerd_face:"] = 70,
+  [":face_with_monocle:"] = 71,
+  [":confused_face:"] = 72,
+  [":face_with_diagonal_mouth:"] = 73,
+  [":worried_face:"] = 74,
+  [":slightly_frowning_face:"] = 75,
+  [":frowning_face:"] = 76,
+  [":face_with_open_mouth:"] = 77,
+  [":hushed_face:"] = 78,
+  [":astonished_face:"] = 79,
+  [":flushed_face:"] = 80,
+  [":pleading_face:"] = 81,
+  [":face_holding_back_tears:"] = 82,
+  [":frowning_face_with_open_mouth:"] = 83,
+  [":anguished_face:"] = 84,
+  [":fearful_face:"] = 85,
+  [":anxious_face_with_sweat:"] = 86,
+  [":sad_but_relieved_face:"] = 87,
+  [":crying_face:"] = 88,
+  [":loudly_crying_face:"] = 89,
+  [":face_screaming_in_fear:"] = 90,
+  [":confounded_face:"] = 91,
+  [":persevering_face:"] = 92,
+  [":disappointed_face:"] = 93,
+  [":downcast_face_with_sweat:"] = 94,
+  [":weary_face:"] = 95,
+  [":tired_face:"] = 96,
+  [":yawning_face:"] = 97,
+  [":face_with_steam_from_nose:"] = 98,
+  [":enraged_face:"] = 99,
+  [":angry_face:"] = 100,
+  [":face_with_symbols_on_mouth:"] = 101,
+  [":smiling_face_with_horns:"] = 102,
+  [":angry_face_with_horns:"] = 103,
+  [":skull:"] = 104,
+  [":skull_and_crossbones:"] = 105,
+  [":pile_of_poo:"] = 106,
+  [":clown_face:"] = 107,
+  [":ogre:"] = 108,
+  [":goblin:"] = 109,
+  [":ghost:"] = 110,
+  [":alien:"] = 111,
+  [":alien_monster:"] = 112,
+  [":robot:"] = 113,
+  [":grinning_cat:"] = 114,
+  [":grinning_cat_with_smiling_eyes:"] = 115,
+  [":cat_with_tears_of_joy:"] = 116,
+  [":smiling_cat_with_heart_eyes:"] = 117,
+  [":cat_with_wry_smile:"] = 118,
+  [":kissing_cat:"] = 119,
+  [":weary_cat:"] = 120,
+  [":crying_cat:"] = 121,
+  [":pouting_cat:"] = 122,
+  [":see_no_evil_monkey:"] = 123,
+  [":hear_no_evil_monkey:"] = 124,
+  [":speak_no_evil_monkey:"] = 125,
+  [":love_letter:"] = 126,
+  [":heart_with_arrow:"] = 127,
+  [":heart_with_ribbon:"] = 128,
+  [":sparkling_heart:"] = 129,
+  [":growing_heart:"] = 130,
+  [":beating_heart:"] = 131,
+  [":revolving_hearts:"] = 132,
+  [":two_hearts:"] = 133,
+  [":heart_decoration:"] = 134,
+  [":heart_exclamation:"] = 135,
+  [":broken_heart:"] = 136,
+  [":heart_on_fire:"] = 137,
+  [":mending_heart:"] = 138,
+  [":⊛_pink_heart:"] = 139,
+  [":orange_heart:"] = 140,
+  [":yellow_heart:"] = 141,
+  [":green_heart:"] = 142,
+  [":blue_heart:"] = 143,
+  [":purple_heart:"] = 144,
+  [":brown_heart:"] = 145,
+  [":⊛_grey_heart:"] = 146,
+  [":white_heart:"] = 147,
+  [":kiss_mark:"] = 148,
+  [":hundred_points:"] = 149,
+  [":anger_symbol:"] = 150,
+  [":collision:"] = 151,
+  [":dizzy:"] = 152,
+  [":sweat_droplets:"] = 153,
+  [":dashing_away:"] = 154,
+  [":hole:"] = 155,
+  [":speech_balloon:"] = 156,
+  [":eye_in_speech_bubble:"] = 157,
+  [":left_speech_bubble:"] = 158,
+  [":right_anger_bubble:"] = 159,
+  [":thought_balloon:"] = 160,
+  [":ZZZ:"] = 161,
+  [":waving_hand:"] = 162,
+  [":raised_back_of_hand:"] = 163,
+  [":hand_with_fingers_splayed:"] = 164,
+  [":raised_hand:"] = 165,
+  [":vulcan_salute:"] = 166,
+  [":rightwards_hand:"] = 167,
+  [":leftwards_hand:"] = 168,
+  [":palm_down_hand:"] = 169,
+  [":⊛_rightwards_pushing_hand:"] = 170,
+  [":OK_hand:"] = 171,
+  [":pinched_fingers:"] = 172,
+  [":pinching_hand:"] = 173,
+  [":victory_hand:"] = 174,
+  [":crossed_fingers:"] = 175,
+  [":hand_with_index_finger_and_thumb_crossed:"] = 176,
+  [":love_you_gesture:"] = 177,
+  [":sign_of_the_horns:"] = 178,
+  [":call_me_hand:"] = 179,
+  [":backhand_index_pointing_left:"] = 180,
+  [":backhand_index_pointing_right:"] = 181,
+  [":backhand_index_pointing_up:"] = 182,
+  [":middle_finger:"] = 183,
+  [":backhand_index_pointing_down:"] = 184,
+  [":index_pointing_up:"] = 185,
+  [":index_pointing_at_the_viewer:"] = 186,
+  [":thumbs_up:"] = 187,
+  [":thumbs_down:"] = 188,
+  [":raised_fist:"] = 189,
+  [":oncoming_fist:"] = 190,
+  [":left_facing_fist:"] = 191,
+  [":right_facing_fist:"] = 192,
+  [":clapping_hands:"] = 193,
+  [":raising_hands:"] = 194,
+  [":heart_hands:"] = 195,
+  [":open_hands:"] = 196,
+  [":palms_up_together:"] = 197,
+  [":handshake:"] = 198,
+  [":folded_hands:"] = 199,
+  [":writing_hand:"] = 200,
+  [":nail_polish:"] = 201,
+  [":selfie:"] = 202,
+  [":flexed_biceps:"] = 203,
+  [":mechanical_arm:"] = 204,
+  [":mechanical_leg:"] = 205,
+  [":leg:"] = 206,
+  [":foot:"] = 207,
+  [":ear:"] = 208,
+  [":ear_with_hearing_aid:"] = 209,
+  [":nose:"] = 210,
+  [":brain:"] = 211,
+  [":anatomical_heart:"] = 212,
+  [":lungs:"] = 213,
+  [":tooth:"] = 214,
+  [":bone:"] = 215,
+  [":eyes:"] = 216,
+  [":eye:"] = 217,
+  [":tongue:"] = 218,
+  [":mouth:"] = 219,
+  [":biting_lip:"] = 220,
+  [":baby:"] = 221,
+  [":child:"] = 222,
+  [":boy:"] = 223,
+  [":girl:"] = 224,
+  [":person:"] = 225,
+  [":person_blond_hair:"] = 226,
+  [":man:"] = 227,
+  [":person_beard:"] = 228,
+  [":man_beard:"] = 229,
+  [":woman_beard:"] = 230,
+  [":man_red_hair:"] = 231,
+  [":man_curly_hair:"] = 232,
+  [":man_white_hair:"] = 233,
+  [":man_bald:"] = 234,
+  [":woman:"] = 235,
+  [":woman_red_hair:"] = 236,
+  [":person_red_hair:"] = 237,
+  [":woman_curly_hair:"] = 238,
+  [":person_curly_hair:"] = 239,
+  [":woman_white_hair:"] = 240,
+  [":person_white_hair:"] = 241,
+  [":woman_bald:"] = 242,
+  [":person_bald:"] = 243,
+  [":woman_blond_hair:"] = 244,
+  [":man_blond_hair:"] = 245,
+  [":older_person:"] = 246,
+  [":old_man:"] = 247,
+  [":old_woman:"] = 248,
+  [":person_frowning:"] = 249,
+  [":man_frowning:"] = 250,
+  [":woman_frowning:"] = 251,
+  [":person_pouting:"] = 252,
+  [":man_pouting:"] = 253,
+  [":woman_pouting:"] = 254,
+  [":person_gesturing_NO:"] = 255,
+  [":man_gesturing_NO:"] = 256,
+  [":woman_gesturing_NO:"] = 257,
+  [":person_gesturing_OK:"] = 258,
+  [":man_gesturing_OK:"] = 259,
+  [":woman_gesturing_OK:"] = 260,
+  [":person_tipping_hand:"] = 261,
+  [":man_tipping_hand:"] = 262,
+  [":woman_tipping_hand:"] = 263,
+  [":person_raising_hand:"] = 264,
+  [":man_raising_hand:"] = 265,
+  [":woman_raising_hand:"] = 266,
+  [":deaf_person:"] = 267,
+  [":deaf_man:"] = 268,
+  [":deaf_woman:"] = 269,
+  [":person_bowing:"] = 270,
+  [":man_bowing:"] = 271,
+  [":woman_bowing:"] = 272,
+  [":person_facepalming:"] = 273,
+  [":man_facepalming:"] = 274,
+  [":woman_facepalming:"] = 275,
+  [":person_shrugging:"] = 276,
+  [":man_shrugging:"] = 277,
+  [":woman_shrugging:"] = 278,
+  [":health_worker:"] = 279,
+  [":man_health_worker:"] = 280,
+  [":woman_health_worker:"] = 281,
+  [":student:"] = 282,
+  [":man_student:"] = 283,
+  [":woman_student:"] = 284,
+  [":teacher:"] = 285,
+  [":man_teacher:"] = 286,
+  [":woman_teacher:"] = 287,
+  [":judge:"] = 288,
+  [":man_judge:"] = 289,
+  [":woman_judge:"] = 290,
+  [":farmer:"] = 291,
+  [":man_farmer:"] = 292,
+  [":woman_farmer:"] = 293,
+  [":cook:"] = 294,
+  [":man_cook:"] = 295,
+  [":woman_cook:"] = 296,
+  [":mechanic:"] = 297,
+  [":man_mechanic:"] = 298,
+  [":woman_mechanic:"] = 299,
+  [":factory_worker:"] = 300,
+  [":man_factory_worker:"] = 301,
+  [":woman_factory_worker:"] = 302,
+  [":office_worker:"] = 303,
+  [":man_office_worker:"] = 304,
+  [":woman_office_worker:"] = 305,
+  [":scientist:"] = 306,
+  [":man_scientist:"] = 307,
+  [":woman_scientist:"] = 308,
+  [":technologist:"] = 309,
+  [":man_technologist:"] = 310,
+  [":woman_technologist:"] = 311,
+  [":singer:"] = 312,
+  [":man_singer:"] = 313,
+  [":woman_singer:"] = 314,
+  [":artist:"] = 315,
+  [":man_artist:"] = 316,
+  [":woman_artist:"] = 317,
+  [":pilot:"] = 318,
+  [":man_pilot:"] = 319,
+  [":woman_pilot:"] = 320,
+  [":astronaut:"] = 321,
+  [":man_astronaut:"] = 322,
+  [":woman_astronaut:"] = 323,
+  [":firefighter:"] = 324,
+  [":man_firefighter:"] = 325,
+  [":woman_firefighter:"] = 326,
+  [":police_officer:"] = 327,
+  [":man_police_officer:"] = 328,
+  [":woman_police_officer:"] = 329,
+  [":detective:"] = 330,
+  [":man_detective:"] = 331,
+  [":woman_detective:"] = 332,
+  [":guard:"] = 333,
+  [":man_guard:"] = 334,
+  [":woman_guard:"] = 335,
+  [":ninja:"] = 336,
+  [":construction_worker:"] = 337,
+  [":woman_construction_worker:"] = 338,
+  [":person_with_crown:"] = 339,
+  [":prince:"] = 340,
+  [":princess:"] = 341,
+  [":person_wearing_turban:"] = 342,
+  [":man_wearing_turban:"] = 343,
+  [":woman_wearing_turban:"] = 344,
+  [":person_with_skullcap:"] = 345,
+  [":woman_with_headscarf:"] = 346,
+  [":person_in_tuxedo:"] = 347,
+  [":man_in_tuxedo:"] = 348,
+  [":woman_in_tuxedo:"] = 349,
+  [":person_with_veil:"] = 350,
+  [":man_with_veil:"] = 351,
+  [":woman_with_veil:"] = 352,
+  [":pregnant_woman:"] = 353,
+  [":pregnant_man:"] = 354,
+  [":pregnant_person:"] = 355,
+  [":breast_feeding:"] = 356,
+  [":woman_feeding_baby:"] = 357,
+  [":man_feeding_baby:"] = 358,
+  [":person_feeding_baby:"] = 359,
+  [":baby_angel:"] = 360,
+  [":Santa_Claus:"] = 361,
+  [":Mrs._Claus:"] = 362,
+  [":mx_claus:"] = 363,
+  [":superhero:"] = 364,
+  [":man_superhero:"] = 365,
+  [":woman_superhero:"] = 366,
+  [":supervillain:"] = 367,
+  [":man_supervillain:"] = 368,
+  [":woman_supervillain:"] = 369,
+  [":mage:"] = 370,
+  [":man_mage:"] = 371,
+  [":woman_mage:"] = 372,
+  [":fairy:"] = 373,
+  [":man_fairy:"] = 374,
+  [":woman_fairy:"] = 375,
+  [":vampire:"] = 376,
+  [":man_vampire:"] = 377,
+  [":woman_vampire:"] = 378,
+  [":merperson:"] = 379,
+  [":merman:"] = 380,
+  [":mermaid:"] = 381,
+  [":elf:"] = 382,
+  [":man_elf:"] = 383,
+  [":woman_elf:"] = 384,
+  [":genie:"] = 385,
+  [":man_genie:"] = 386,
+  [":woman_genie:"] = 387,
+  [":zombie:"] = 388,
+  [":man_zombie:"] = 389,
+  [":woman_zombie:"] = 390,
+  [":troll:"] = 391,
+  [":person_getting_massage:"] = 392,
+  [":man_getting_massage:"] = 393,
+  [":woman_getting_massage:"] = 394,
+  [":person_getting_haircut:"] = 395,
+  [":man_getting_haircut:"] = 396,
+  [":woman_getting_haircut:"] = 397,
+  [":person_walking:"] = 398,
+  [":man_walking:"] = 399,
+  [":woman_walking:"] = 400,
+  [":person_standing:"] = 401,
+  [":man_standing:"] = 402,
+  [":woman_standing:"] = 403,
+  [":person_kneeling:"] = 404,
+  [":man_kneeling:"] = 405,
+  [":woman_kneeling:"] = 406,
+  [":person_with_white_cane:"] = 407,
+  [":man_with_white_cane:"] = 408,
+  [":woman_with_white_cane:"] = 409,
+  [":person_in_motorized_wheelchair:"] = 410,
+  [":man_in_motorized_wheelchair:"] = 411,
+  [":woman_in_motorized_wheelchair:"] = 412,
+  [":person_in_manual_wheelchair:"] = 413,
+  [":man_in_manual_wheelchair:"] = 414,
+  [":woman_in_manual_wheelchair:"] = 415,
+  [":person_running:"] = 416,
+  [":man_running:"] = 417,
+  [":woman_running:"] = 418,
+  [":woman_dancing:"] = 419,
+  [":man_dancing:"] = 420,
+  [":person_in_suit_levitating:"] = 421,
+  [":people_with_bunny_ears:"] = 422,
+  [":men_with_bunny_ears:"] = 423,
+  [":women_with_bunny_ears:"] = 424,
+  [":person_in_steamy_room:"] = 425,
+  [":man_in_steamy_room:"] = 426,
+  [":woman_in_steamy_room:"] = 427,
+  [":person_climbing:"] = 428,
+  [":man_climbing:"] = 429,
+  [":woman_climbing:"] = 430,
+  [":person_fencing:"] = 431,
+  [":horse_racing:"] = 432,
+  [":skier:"] = 433,
+  [":snowboarder:"] = 434,
+  [":person_golfing:"] = 435,
+  [":man_golfing:"] = 436,
+  [":woman_golfing:"] = 437,
+  [":person_surfing:"] = 438,
+  [":man_surfing:"] = 439,
+  [":woman_surfing:"] = 440,
+  [":person_rowing_boat:"] = 441,
+  [":man_rowing_boat:"] = 442,
+  [":woman_rowing_boat:"] = 443,
+  [":person_swimming:"] = 444,
+  [":man_swimming:"] = 445,
+  [":woman_swimming:"] = 446,
+  [":person_bouncing_ball:"] = 447,
+  [":man_bouncing_ball:"] = 448,
+  [":woman_bouncing_ball:"] = 449,
+  [":person_lifting_weights:"] = 450,
+  [":man_lifting_weights:"] = 451,
+  [":woman_lifting_weights:"] = 452,
+  [":person_biking:"] = 453,
+  [":man_biking:"] = 454,
+  [":woman_biking:"] = 455,
+  [":person_mountain_biking:"] = 456,
+  [":man_mountain_biking:"] = 457,
+  [":woman_mountain_biking:"] = 458,
+  [":person_cartwheeling:"] = 459,
+  [":man_cartwheeling:"] = 460,
+  [":woman_cartwheeling:"] = 461,
+  [":people_wrestling:"] = 462,
+  [":men_wrestling:"] = 463,
+  [":women_wrestling:"] = 464,
+  [":person_playing_water_polo:"] = 465,
+  [":man_playing_water_polo:"] = 466,
+  [":woman_playing_water_polo:"] = 467,
+  [":person_playing_handball:"] = 468,
+  [":man_playing_handball:"] = 469,
+  [":person_juggling:"] = 470,
+  [":man_juggling:"] = 471,
+  [":woman_juggling:"] = 472,
+  [":person_in_lotus_position:"] = 473,
+  [":man_in_lotus_position:"] = 474,
+  [":woman_in_lotus_position:"] = 475,
+  [":person_taking_bath:"] = 476,
+  [":person_in_bed:"] = 477,
+  [":people_holding_hands:"] = 478,
+  [":women_holding_hands:"] = 479,
+  [":woman_and_man_holding_hands:"] = 480,
+  [":men_holding_hands:"] = 481,
+  [":kiss:"] = 482,
+  [":kiss_woman_man:"] = 483,
+  [":kiss_man_man:"] = 484,
+  [":kiss_woman_woman:"] = 485,
+  [":couple_with_heart:"] = 486,
+  [":couple_with_heart_woman_man:"] = 487,
+  [":couple_with_heart_man_man:"] = 488,
+  [":couple_with_heart_woman_woman:"] = 489,
+  [":family:"] = 490,
+  [":family_man_woman_boy:"] = 491,
+  [":family_man_woman_girl:"] = 492,
+  [":family_man_woman_girl_boy:"] = 493,
+  [":family_man_woman_boy_boy:"] = 494,
+  [":family_man_woman_girl_girl:"] = 495,
+  [":family_man_man_boy:"] = 496,
+  [":family_man:"] = 497,
+  [":family_man_man_girl_boy:"] = 498,
+  [":family_man_man_boy_boy:"] = 499,
+  [":family_man_man_girl_girl:"] = 500,
+  [":family_woman_woman_boy:"] = 501,
+  [":family_woman_woman_girl:"] = 502,
+  [":family_woman_woman_girl_boy:"] = 503,
+  [":family_woman_woman_boy_boy:"] = 504,
+  [":family_woman_woman_girl_girl:"] = 505,
+  [":family_man_boy:"] = 506,
+  [":family_man_boy_boy:"] = 507,
+  [":family_man_girl:"] = 508,
+  [":family_man_girl_boy:"] = 509,
+  [":family_man_girl_girl:"] = 510,
+  [":family_woman_boy:"] = 511,
+  [":family_woman_boy_boy:"] = 512,
+  [":family_woman_girl:"] = 513,
+  [":family_woman_girl_boy:"] = 514,
+  [":family_woman_girl_girl:"] = 515,
+  [":speaking_head:"] = 516,
+  [":bust_in_silhouette:"] = 517,
+  [":busts_in_silhouette:"] = 518,
+  [":people_hugging:"] = 519,
+  [":footprints:"] = 520,
+  [":red_hair:"] = 521,
+  [":curly_hair:"] = 522,
+  [":white_hair:"] = 523,
+  [":bald:"] = 524,
+  [":monkey_face:"] = 525,
+  [":monkey:"] = 526,
+  [":gorilla:"] = 527,
+  [":orangutan:"] = 528,
+  [":dog_face:"] = 529,
+  [":dog:"] = 530,
+  [":guide_dog:"] = 531,
+  [":service_dog:"] = 532,
+  [":poodle:"] = 533,
+  [":wolf:"] = 534,
+  [":fox:"] = 535,
+  [":raccoon:"] = 536,
+  [":cat_face:"] = 537,
+  [":cat:"] = 538,
+  [":black_cat:"] = 539,
+  [":lion:"] = 540,
+  [":tiger_face:"] = 541,
+  [":tiger:"] = 542,
+  [":leopard:"] = 543,
+  [":horse_face:"] = 544,
+  [":horse:"] = 545,
+  [":unicorn:"] = 546,
+  [":zebra:"] = 547,
+  [":deer:"] = 548,
+  [":bison:"] = 549,
+  [":cow_face:"] = 550,
+  [":ox:"] = 551,
+  [":water_buffalo:"] = 552,
+  [":cow:"] = 553,
+  [":pig_face:"] = 554,
+  [":pig:"] = 555,
+  [":boar:"] = 556,
+  [":pig_nose:"] = 557,
+  [":ram:"] = 558,
+  [":ewe:"] = 559,
+  [":goat:"] = 560,
+  [":camel:"] = 561,
+  [":two_hump_camel:"] = 562,
+  [":llama:"] = 563,
+  [":giraffe:"] = 564,
+  [":elephant:"] = 565,
+  [":mammoth:"] = 566,
+  [":rhinoceros:"] = 567,
+  [":hippopotamus:"] = 568,
+  [":mouse_face:"] = 569,
+  [":mouse:"] = 570,
+  [":rat:"] = 571,
+  [":hamster:"] = 572,
+  [":rabbit_face:"] = 573,
+  [":rabbit:"] = 574,
+  [":chipmunk:"] = 575,
+  [":beaver:"] = 576,
+  [":hedgehog:"] = 577,
+  [":bat:"] = 578,
+  [":bear:"] = 579,
+  [":polar_bear:"] = 580,
+  [":koala:"] = 581,
+  [":panda:"] = 582,
+  [":sloth:"] = 583,
+  [":otter:"] = 584,
+  [":skunk:"] = 585,
+  [":kangaroo:"] = 586,
+  [":badger:"] = 587,
+  [":paw_prints:"] = 588,
+  [":turkey:"] = 589,
+  [":chicken:"] = 590,
+  [":rooster:"] = 591,
+  [":hatching_chick:"] = 592,
+  [":baby_chick:"] = 593,
+  [":front_facing_baby_chick:"] = 594,
+  [":bird:"] = 595,
+  [":penguin:"] = 596,
+  [":dove:"] = 597,
+  [":eagle:"] = 598,
+  [":duck:"] = 599,
+  [":swan:"] = 600,
+  [":owl:"] = 601,
+  [":dodo:"] = 602,
+  [":feather:"] = 603,
+  [":flamingo:"] = 604,
+  [":peacock:"] = 605,
+  [":parrot:"] = 606,
+  [":frog:"] = 607,
+  [":crocodile:"] = 608,
+  [":turtle:"] = 609,
+  [":lizard:"] = 610,
+  [":snake:"] = 611,
+  [":dragon_face:"] = 612,
+  [":dragon:"] = 613,
+  [":sauropod:"] = 614,
+  [":t_rex:"] = 615,
+  [":spouting_whale:"] = 616,
+  [":whale:"] = 617,
+  [":dolphin:"] = 618,
+  [":seal:"] = 619,
+  [":fish:"] = 620,
+  [":tropical_fish:"] = 621,
+  [":blowfish:"] = 622,
+  [":shark:"] = 623,
+  [":octopus:"] = 624,
+  [":spiral_shell:"] = 625,
+  [":snail:"] = 626,
+  [":butterfly:"] = 627,
+  [":bug:"] = 628,
+  [":ant:"] = 629,
+  [":honeybee:"] = 630,
+  [":beetle:"] = 631,
+  [":lady_beetle:"] = 632,
+  [":cricket:"] = 633,
+  [":cockroach:"] = 634,
+  [":spider:"] = 635,
+  [":spider_web:"] = 636,
+  [":scorpion:"] = 637,
+  [":mosquito:"] = 638,
+  [":fly:"] = 639,
+  [":worm:"] = 640,
+  [":microbe:"] = 641,
+  [":bouquet:"] = 642,
+  [":cherry_blossom:"] = 643,
+  [":white_flower:"] = 644,
+  [":lotus:"] = 645,
+  [":rosette:"] = 646,
+  [":rose:"] = 647,
+  [":wilted_flower:"] = 648,
+  [":hibiscus:"] = 649,
+  [":sunflower:"] = 650,
+  [":blossom:"] = 651,
+  [":tulip:"] = 652,
+  [":seedling:"] = 653,
+  [":potted_plant:"] = 654,
+  [":evergreen_tree:"] = 655,
+  [":deciduous_tree:"] = 656,
+  [":palm_tree:"] = 657,
+  [":cactus:"] = 658,
+  [":sheaf_of_rice:"] = 659,
+  [":herb:"] = 660,
+  [":shamrock:"] = 661,
+  [":four_leaf_clover:"] = 662,
+  [":maple_leaf:"] = 663,
+  [":fallen_leaf:"] = 664,
+  [":leaf_fluttering_in_wind:"] = 665,
+  [":empty_nest:"] = 666,
+  [":nest_with_eggs:"] = 667,
+  [":mushroom:"] = 668,
+  [":globe_showing_europe_africa:"] = 669,
+  [":globe_showing_americas:"] = 670,
+  [":globe_showing_asia_australia:"] = 671,
+  [":globe_with_meridians:"] = 672,
+  [":world_map:"] = 673,
+  [":map_of_japan:"] = 674,
+  [":compass:"] = 675,
+  [":snow_capped_mountain:"] = 676,
+  [":mountain:"] = 677,
+  [":volcano:"] = 678,
+  [":mount_fuji:"] = 679,
+  [":camping:"] = 680,
+  [":beach_with_umbrella:"] = 681,
+  [":desert:"] = 682,
+  [":desert_island:"] = 683,
+  [":national_park:"] = 684,
+  [":stadium:"] = 685,
+  [":classical_building:"] = 686,
+  [":building_construction:"] = 687,
+  [":brick:"] = 688,
+  [":rock:"] = 689,
+  [":wood:"] = 690,
+  [":hut:"] = 691,
+  [":houses:"] = 692,
+  [":derelict_house:"] = 693,
+  [":house:"] = 694,
+  [":house_with_garden:"] = 695,
+  [":office_building:"] = 696,
+  [":japanese_post_office:"] = 697,
+  [":post_office:"] = 698,
+  [":hospital:"] = 699,
+  [":bank:"] = 700,
+  [":hotel:"] = 701,
+  [":love_hotel:"] = 702,
+  [":convenience_store:"] = 703,
+  [":school:"] = 704,
+  [":department_store:"] = 705,
+  [":factory:"] = 706,
+  [":japanese_castle:"] = 707,
+  [":castle:"] = 708,
+  [":wedding:"] = 709,
+  [":tokyo_tower:"] = 710,
+  [":statue_of_liberty:"] = 711,
+  [":church:"] = 712,
+  [":mosque:"] = 713,
+  [":hindu_temple:"] = 714,
+  [":synagogue:"] = 715,
+  [":shinto_shrine:"] = 716,
+  [":kaaba:"] = 717,
+  [":fountain:"] = 718,
+  [":tent:"] = 719,
+  [":foggy:"] = 720,
+  [":night_with_stars:"] = 721,
+  [":cityscape:"] = 722,
+  [":sunrise_over_mountains:"] = 723,
+  [":sunrise:"] = 724,
+  [":cityscape_at_dusk:"] = 725,
+  [":sunset:"] = 726,
+  [":bridge_at_night:"] = 727,
+  [":hot_springs:"] = 728,
+  [":carousel_horse:"] = 729,
+  [":playground_slide:"] = 730,
+  [":ferris_wheel:"] = 731,
+  [":roller_coaster:"] = 732,
+  [":barber_pole:"] = 733,
+  [":circus_tent:"] = 734,
+  [":locomotive:"] = 735,
+  [":railway_car:"] = 736,
+  [":high_speed_train:"] = 737,
+  [":bullet_train:"] = 738,
+  [":train:"] = 739,
+  [":metro:"] = 740,
+  [":light_rail:"] = 741,
+  [":station:"] = 742,
+  [":tram:"] = 743,
+  [":monorail:"] = 744,
+  [":mountain_railway:"] = 745,
+  [":tram_car:"] = 746,
+  [":bus:"] = 747,
+  [":oncoming_bus:"] = 748,
+  [":trolleybus:"] = 749,
+  [":minibus:"] = 750,
+  [":ambulance:"] = 751,
+  [":fire_engine:"] = 752,
+  [":police_car:"] = 753,
+  [":oncoming_police_car:"] = 754,
+  [":taxi:"] = 755,
+  [":oncoming_taxi:"] = 756,
+  [":automobile:"] = 757,
+  [":oncoming_automobile:"] = 758,
+  [":sport_utility_vehicle:"] = 759,
+  [":pickup_truck:"] = 760,
+  [":delivery_truck:"] = 761,
+  [":articulated_lorry:"] = 762,
+  [":tractor:"] = 763,
+  [":racing_car:"] = 764,
+  [":motorcycle:"] = 765,
+  [":motor_scooter:"] = 766,
+  [":manual_wheelchair:"] = 767,
+  [":motorized_wheelchair:"] = 768,
+  [":auto_rickshaw:"] = 769,
+  [":bicycle:"] = 770,
+  [":kick_scooter:"] = 771,
+  [":skateboard:"] = 772,
+  [":roller_skate:"] = 773,
+  [":bus_stop:"] = 774,
+  [":motorway:"] = 775,
+  [":railway_track:"] = 776,
+  [":oil_drum:"] = 777,
+  [":fuel_pump:"] = 778,
+  [":wheel:"] = 779,
+  [":police_car_light:"] = 780,
+  [":horizontal_traffic_light:"] = 781,
+  [":vertical_traffic_light:"] = 782,
+  [":stop_sign:"] = 783,
+  [":construction:"] = 784,
+  [":anchor:"] = 785,
+  [":ring_buoy:"] = 786,
+  [":sailboat:"] = 787,
+  [":canoe:"] = 788,
+  [":speedboat:"] = 789,
+  [":passenger_ship:"] = 790,
+  [":ferry:"] = 791,
+  [":motor_boat:"] = 792,
+  [":ship:"] = 793,
+  [":airplane:"] = 794,
+  [":small_airplane:"] = 795,
+  [":airplane_departure:"] = 796,
+  [":airplane_arrival:"] = 797,
+  [":parachute:"] = 798,
+  [":seat:"] = 799,
+  [":helicopter:"] = 800,
+  [":suspension_railway:"] = 801,
+  [":mountain_cableway:"] = 802,
+  [":aerial_tramway:"] = 803,
+  [":satellite:"] = 804,
+  [":rocket:"] = 805,
+  [":flying_saucer:"] = 806,
+  [":luggage:"] = 807,
+  [":hourglass_done:"] = 808,
+  [":hourglass_not_done:"] = 809,
+  [":watch:"] = 810,
+  [":alarm_clock:"] = 811,
+  [":stopwatch:"] = 812,
+  [":timer_clock:"] = 813,
+  [":mantelpiece_clock:"] = 814,
+  [":twelve_oclock:"] = 815,
+  [":twelve_thirty:"] = 816,
+  [":one_oclock:"] = 817,
+  [":one_thirty:"] = 818,
+  [":two_oclock:"] = 819,
+  [":two_thirty:"] = 820,
+  [":three_oclock:"] = 821,
+  [":three_thirty:"] = 822,
+  [":four_oclock:"] = 823,
+  [":four_thirty:"] = 824,
+  [":five_oclock:"] = 825,
+  [":five_thirty:"] = 826,
+  [":six_oclock:"] = 827,
+  [":six_thirty:"] = 828,
+  [":seven_oclock:"] = 829,
+  [":seven_thirty:"] = 830,
+  [":eight_oclock:"] = 831,
+  [":eight_thirty:"] = 832,
+  [":nine_oclock:"] = 833,
+  [":nine_thirty:"] = 834,
+  [":ten_oclock:"] = 835,
+  [":ten_thirty:"] = 836,
+  [":eleven_oclock:"] = 837,
+  [":eleven_thirty:"] = 838,
+  [":new_moon:"] = 839,
+  [":waxing_crescent_moon:"] = 840,
+  [":first_quarter_moon:"] = 841,
+  [":waxing_gibbous_moon:"] = 842,
+  [":full_moon:"] = 843,
+  [":waning_gibbous_moon:"] = 844,
+  [":last_quarter_moon:"] = 845,
+  [":waning_crescent_moon:"] = 846,
+  [":crescent_moon:"] = 847,
+  [":new_moon_face:"] = 848,
+  [":first_quarter_moon_face:"] = 849,
+  [":last_quarter_moon_face:"] = 850,
+  [":thermometer:"] = 851,
+  [":sun:"] = 852,
+  [":full_moon_face:"] = 853,
+  [":sun_with_face:"] = 854,
+  [":ringed_planet:"] = 855,
+  [":star:"] = 856,
+  [":glowing_star:"] = 857,
+  [":shooting_star:"] = 858,
+  [":milky_way:"] = 859,
+  [":cloud:"] = 860,
+  [":sun_behind_cloud:"] = 861,
+  [":cloud_with_lightning_and_rain:"] = 862,
+  [":sun_behind_small_cloud:"] = 863,
+  [":sun_behind_large_cloud:"] = 864,
+  [":sun_behind_rain_cloud:"] = 865,
+  [":cloud_with_rain:"] = 866,
+  [":cloud_with_snow:"] = 867,
+  [":cloud_with_lightning:"] = 868,
+  [":tornado:"] = 869,
+  [":fog:"] = 870,
+  [":wind_face:"] = 871,
+  [":cyclone:"] = 872,
+  [":rainbow:"] = 873,
+  [":closed_umbrella:"] = 874,
+  [":umbrella:"] = 875,
+  [":umbrella_with_rain_drops:"] = 876,
+  [":umbrella_on_ground:"] = 877,
+  [":high_voltage:"] = 878,
+  [":snowflake:"] = 879,
+  [":snowman:"] = 880,
+  [":snowman_without_snow:"] = 881,
+  [":comet:"] = 882,
+  [":fire:"] = 883,
+  [":droplet:"] = 884,
+  [":water_wave:"] = 885,
+  [":jack_o_lantern:"] = 886,
+  [":christmas_tree:"] = 887,
+  [":fireworks:"] = 888,
+  [":sparkler:"] = 889,
+  [":firecracker:"] = 890,
+  [":sparkles:"] = 891,
+  [":balloon:"] = 892,
+  [":party_popper:"] = 893,
+  [":confetti_ball:"] = 894,
+  [":tanabata_tree:"] = 895,
+  [":pine_decoration:"] = 896,
+  [":japanese_dolls:"] = 897,
+  [":carp_streamer:"] = 898,
+  [":wind_chime:"] = 899,
+  [":moon_viewing_ceremony:"] = 900,
+  [":red_envelope:"] = 901,
+  [":ribbon:"] = 902,
+  [":wrapped_gift:"] = 903,
+  [":reminder_ribbon:"] = 904,
+  [":admission_tickets:"] = 905,
+  [":ticket:"] = 906,
+  [":military_medal:"] = 907,
+  [":trophy:"] = 908,
+  [":sports_medal:"] = 909,
+  [":1st_place_medal:"] = 910,
+  [":2nd_place_medal:"] = 911,
+  [":3rd_place_medal:"] = 912,
+  [":soccer_ball:"] = 913,
+  [":baseball:"] = 914,
+  [":softball:"] = 915,
+  [":basketball:"] = 916,
+  [":volleyball:"] = 917,
+  [":american_football:"] = 918,
+  [":rugby_football:"] = 919,
+  [":tennis:"] = 920,
+  [":flying_disc:"] = 921,
+  [":bowling:"] = 922,
+  [":cricket_game:"] = 923,
+  [":field_hockey:"] = 924,
+  [":ice_hockey:"] = 925,
+  [":lacrosse:"] = 926,
+  [":ping_pong:"] = 927,
+  [":badminton:"] = 928,
+  [":boxing_glove:"] = 929,
+  [":martial_arts_uniform:"] = 930,
+  [":goal_net:"] = 931,
+  [":flag_in_hole:"] = 932,
+  [":ice_skate:"] = 933,
+  [":fishing_pole:"] = 934,
+  [":diving_mask:"] = 935,
+  [":running_shirt:"] = 936,
+  [":skis:"] = 937,
+  [":sled:"] = 938,
+  [":curling_stone:"] = 939,
+  [":bullseye:"] = 940,
+  [":yo_yo:"] = 941,
+  [":kite:"] = 942,
+  [":water_pistol:"] = 943,
+  [":pool_8_ball:"] = 944,
+  [":crystal_ball:"] = 945,
+  [":magic_wand:"] = 946,
+  [":video_game:"] = 947,
+  [":joystick:"] = 948,
+  [":slot_machine:"] = 949,
+  [":game_die:"] = 950,
+  [":puzzle_piece:"] = 951,
+  [":teddy_bear:"] = 952,
+  [":piñata:"] = 953,
+  [":mirror_ball:"] = 954,
+  [":nesting_dolls:"] = 955,
+  [":spade_suit:"] = 956,
+  [":heart_suit:"] = 957,
+  [":diamond_suit:"] = 958,
+  [":club_suit:"] = 959,
+  [":chess_pawn:"] = 960,
+  [":joker:"] = 961,
+  [":mahjong_red_dragon:"] = 962,
+  [":flower_playing_cards:"] = 963,
+  [":performing_arts:"] = 964,
+  [":framed_picture:"] = 965,
+  [":artist_palette:"] = 966,
+  [":thread:"] = 967,
+  [":sewing_needle:"] = 968,
+  [":yarn:"] = 969,
+  [":knot:"] = 970,
+}
+
+local SHADOW_OFFSET_X = 0.001
+local SHADOW_OFFSET_Y = -0.001
+local SHADOW_ALPHA = 0.7
+
+local EMOJI_TARGET_MUlTIPLIER = 0.833
+
+local cachedText = nil
+local cachedMessages = nil
+local cachedFonts = {}
+local cachedFontMetrics = {}
+local cachedEmojiImages = {}
+
+local cachedImage = nil
+local lastRenderParams = {}
+
+local animationDuration = 0.2
+local lastVisibleCount = 0
+local animationStartTime = -1
+local isAnimating = false
+
+local lastWidthPixels = 400
+local lastHeightPixels = 300
+local lastWidthNorm = 0.3
+local lastHeightNorm = 0.3
+local updatingControls = false
+
+--- Creates the user interface controls for the Fuse
+-- Sets up all input parameters including chat settings, positioning, fonts, and appearance options
+function Create()
+  InEmojiSpritesheet = self:AddInput("Emoji Spritesheet", "EmojiSpritesheetBoba", {
+    LINKID_DataType = "Image",
+    LINK_Main = 1,
+    INP_Required = false,
+    INP_DoNotifyChanged = false,
+    INP_Connected = false,
+  })
+
+  self:BeginControlNest("Chat Settings", "chatSettings", true);
+  InText = self:AddInput("Chat Messages (one per line)", "ChatText", {
+    LINKID_DataType     = "Text",
+    INPID_InputControl  = "TextEditControl",
+    INPS_DefaultText    = "User1: Hello!\nUser2: Hi there!\nUser3: How are you?",
+    TEC_Lines           = 30,
+    TEC_Wrap            = true,
+  })
+
+  InMaxMessages = self:AddInput("Max Visible Messages", "MaxMessages", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "SliderControl",
+    INP_Default         = 10,
+    INP_MinScale        = 1,
+    INP_MaxScale        = 50,
+    INP_Integer         = true,
+  })
+  
+  InLineSpacing = self:AddInput("Line Spacing", "LineSpacing", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "SliderControl",
+    INP_Default         = 1.3,
+    INP_MinScale        = 0.5,
+    INP_MaxScale        = 3.0,
+  })
+  
+  InStartDelay = self:AddInput("Start Delay (ms)", "StartDelay", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "SliderControl",
+    INP_Default         = 0,
+    INP_MinScale        = 0,
+    INP_MaxScale        = 10000,
+    INP_Integer         = true,
+  })
+  self:EndControlNest()
+
+  self:BeginControlNest("Size & Position", "SizeSettings", true);
+  InPosition = self:AddInput("Position", "Position", {
+    LINKID_DataType     = "Point",
+    INPID_InputControl  = "OffsetControl",
+    INPID_PreviewControl = "CrosshairControl",
+    INP_DefaultX        = 0.5,
+    INP_DefaultY        = 0.8,
+  })
+  
+  InAreaWidth = self:AddInput("Area Width (pixels)", "AreaWidth", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "SliderControl",
+    INP_Default         = 400,
+    INP_MinScale        = 100,
+    INP_MaxScale        = 1920,
+    INP_Integer         = true,
+    INP_DoNotifyChanged = true,
+  })
+  
+  InAreaHeight = self:AddInput("Area Height (pixels)", "AreaHeight", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "SliderControl",
+    INP_Default         = 300,
+    INP_MinScale        = 100,
+    INP_MaxScale        = 1080,
+    INP_Integer         = true,
+    INP_DoNotifyChanged = true,
+  })
+  InAreaWidthNorm = self:AddInput("AreaWidthNorm", "AreaWidthNorm", {
+    LINKID_DataType     = "Number",
+    INPID_PreviewControl = "RectangleControl",
+    INP_Default         = 0.3,
+    IC_Visible          = false,
+    PC_ControlGroup     = 1,
+    PC_ControlID        = 0,
+    INP_DoNotifyChanged = true,
+  })
+  
+  InAreaHeightNorm = self:AddInput("AreaHeightNorm", "AreaHeightNorm", {
+    LINKID_DataType     = "Number",
+    INPID_PreviewControl = "RectangleControl",
+    INP_Default         = 0.3,
+    IC_Visible          = false,
+    PC_ControlGroup     = 1,
+    PC_ControlID        = 1,
+    INP_DoNotifyChanged = true,
+  })
+  self:EndControlNest()
+
+  self:BeginControlNest("Appearance", "AppearanceSettings", true);
+  InAreaWidthNorm:SetAttrs({
+    RCP_Center = InPosition,
+  })
+  
+  InJustify = self:AddInput("Text Align", "Justify", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "MultiButtonControl",
+    INP_Default         = 0,
+    INP_Integer         = true,
+    { MBTNC_AddButton = "Left", MBTNCD_ButtonWidth = 0.33 },
+    { MBTNC_AddButton = "Center", MBTNCD_ButtonWidth = 0.33 },
+    { MBTNC_AddButton = "Right", MBTNCD_ButtonWidth = 0.34 },
+  })
+
+  InFontSize = self:AddInput("Font Size (pixels)", "FontSize", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "SliderControl",
+    INP_Default         = 40,
+    INP_MinScale        = 10,
+    INP_MaxScale        = 200,
+    INP_Integer         = true,
+  })
+
+  InR = self:AddInput("Red", "Red", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "ColorControl",
+    INP_MinScale        = 0.0, INP_MaxScale = 1.0, INP_Default = 1.0,
+    ICS_Name            = "Message Color",
+    IC_ControlGroup     = 1, IC_ControlID = 0,
+  })
+  InG = self:AddInput("Green", "Green", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "ColorControl",
+    INP_MinScale        = 0.0, INP_MaxScale = 1.0, INP_Default = 1.0,
+    IC_ControlGroup     = 1, IC_ControlID = 1,
+  })
+  InB = self:AddInput("Blue", "Blue", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "ColorControl",
+    INP_MinScale        = 0.0, INP_MaxScale = 1.0, INP_Default = 1.0,
+    IC_ControlGroup     = 1, IC_ControlID = 2,
+  })
+  InA = self:AddInput("Alpha", "Alpha", {
+    LINKID_DataType     = "Number",
+    INPID_InputControl  = "ColorControl",
+    INP_MinScale        = 0.0, INP_MaxScale = 1.0, INP_Default = 1.0,
+    IC_ControlGroup     = 1, IC_ControlID = 3,
+  })
+
+  InNickFont = self:AddInput("Nick Font", "NickFont", {
+    LINKID_DataType     = "Text",
+    INPID_InputControl  = "FontFileControl",
+    IC_ControlGroup     = 2, IC_ControlID = 0,
+    INP_Level           = 1,
+    INP_DoNotifyChanged = true,
+    INP_Required = true
+  })
+  InNickFontStyle = self:AddInput("Nick Style", "NickStyle", {
+    LINKID_DataType     = "Text",
+    INPID_InputControl  = "FontFileControl",
+    IC_ControlGroup     = 2, IC_ControlID = 1,
+    INP_Level           = 1,
+    INP_DoNotifyChanged = true,
+    INP_Required = true
+  })
+  
+  InMessageFont = self:AddInput("Message Font", "MessageFont", {
+    LINKID_DataType     = "Text",
+    INPID_InputControl  = "FontFileControl",
+    IC_ControlGroup     = 3, IC_ControlID = 0,
+    INP_Level           = 1,
+    INP_DoNotifyChanged = true,
+    INP_Required = true
+  })
+  InMessageFontStyle = self:AddInput("Message Style", "MessageStyle", {
+    LINKID_DataType     = "Text",
+    INPID_InputControl  = "FontFileControl",
+    IC_ControlGroup     = 3, IC_ControlID = 1,
+    INP_Level           = 1,
+    INP_DoNotifyChanged = true,
+    INP_Required = true
+  })
+  self:EndControlNest()
+  OutImage = self:AddOutput("Output", "Output", {
+    LINKID_DataType     = "Image",
+    LINK_Main           = 1,
+  })
+
+end
+
+--- Pre-calculation function for optimizing render pipeline
+-- @param req Request object
+function PreCalcProcess(req)
+  local hasSource = InEmojiSpritesheet:GetSource(req.Time) ~= nil
+  
+  local p = (self.Comp and self.Comp:GetPrefs("Comp.FrameFormat")) or {}
+  local w = p.Width or 1920
+  local h = p.Height or 1080
+  
+  local out = Image({
+    IMG_Width = w,
+    IMG_Height = h,
+    IMG_NoData = true
+  })
+  
+  OutImage:Set(req, out)
+end
+
+--- Returns the Domain of Definition for the output image
+-- @param req Request object containing render information
+-- @return Rect defining the full composition frame size
+function GetDoD(req)
+  local p = (self.Comp and self.Comp:GetPrefs("Comp.FrameFormat")) or {}
+  return Rect(0, 0, p.Width or 1920, p.Height or 1080)
+end
+
+--- Creates a signature hash of current render parameters
+-- Used for caching to determine if re-rendering is needed
+-- @param inputs Table of current input parameter values
+-- @param visibleMessages Array of currently visible chat messages
+-- @return Table containing all parameters that affect rendering
+local function createParamsSignature(inputs, visibleMessages)
+  local lastVisibleMessageTime = 0
+  for _, msg in ipairs(visibleMessages) do
+    lastVisibleMessageTime = math.max(lastVisibleMessageTime, msg.time)
+  end
+  
+  return {
+    text = inputs.text,
+    fontSizePixels = inputs.fontSizePixels,
+    startDelay = inputs.startDelay,
+    maxMessages = inputs.maxMessages,
+    lineSpacing = inputs.lineSpacing,
+    centerX = inputs.center.X,
+    centerY = inputs.center.Y,
+    areaWidthPixels = inputs.areaWidthPixels,
+    areaHeightPixels = inputs.areaHeightPixels,
+    justify = inputs.justify,
+    r = inputs.r,
+    g = inputs.g,
+    b = inputs.b,
+    a = inputs.a,
+    nick_font = inputs.nick_font,
+    nick_style = inputs.nick_style,
+    msg_font = inputs.msg_font,
+    msg_style = inputs.msg_style,
+    lastVisibleTime = lastVisibleMessageTime,
+    visibleCount = #visibleMessages
+  }
+end
+
+--- Compares two parameter signatures to detect changes
+-- @param params1 First parameter signature table
+-- @param params2 Second parameter signature table
+-- @return boolean True if parameters have changed
+local function paramsChanged(params1, params2)
+  if not params1 or not params2 then
+    return true
+  end
+
+  for key, value in pairs(params1) do
+    if params2[key] ~= value then
+      return true
+    end
+  end
+  return false
+end
+
+--- Handles notifications when input controls change
+-- Synchronizes pixel and normalized values for area width/height controls
+-- @param inp The input control that changed
+-- @param param The new parameter value
+-- @param time Current time in the timeline
+function NotifyChanged(inp, param, time)
+  if not param or updatingControls then return end
+
+  local p = (self.Comp and self.Comp:GetPrefs("Comp.FrameFormat")) or {}
+  local w = p.Width or 1920
+  local h = p.Height or 1080
+  if inp == InAreaWidth then
+    local pixels = param.Value
+    if math.abs(pixels - lastWidthPixels) > 0.5 then
+      lastWidthPixels = pixels
+      local normalized = pixels / w
+      lastWidthNorm = normalized
+      
+      updatingControls = true
+      InAreaWidthNorm:SetSource(Number(normalized), time)
+      updatingControls = false
+    end
+    
+  elseif inp == InAreaHeight then
+    local pixels = param.Value
+    if math.abs(pixels - lastHeightPixels) > 0.5 then
+      lastHeightPixels = pixels
+      local normalized = pixels / h
+      lastHeightNorm = normalized
+      
+      updatingControls = true
+      InAreaHeightNorm:SetSource(Number(normalized), time)
+      updatingControls = false
+    end
+  elseif inp == InAreaWidthNorm then
+    local normalized = param.Value
+    if math.abs(normalized - lastWidthNorm) > 0.001 then
+      lastWidthNorm = normalized
+      local pixels = math.floor(normalized * w + 0.5)
+      lastWidthPixels = pixels
+      
+      updatingControls = true
+      InAreaWidth:SetSource(Number(pixels), time)
+      updatingControls = false
+    end
+    
+  elseif inp == InAreaHeightNorm then
+    local normalized = param.Value
+    if math.abs(normalized - lastHeightNorm) > 0.001 then
+      lastHeightNorm = normalized
+      local pixels = math.floor(normalized * h + 0.5)
+      lastHeightPixels = pixels
+      
+      updatingControls = true
+      InAreaHeight:SetSource(Number(pixels), time)
+      updatingControls = false
+    end
+  end
+end
+
+--- Decodes UTF-8 encoded text to Unicode code points
+-- Converts UTF-8 byte sequences to Unicode values using the UTF8_TABLE
+-- @param text String to decode
+-- @return Array of Unicode code points
+local function decodeUTF8(text)
+  local result = {}
+  local i = 1
+  
+  while i <= #text do
+    local b1 = string.byte(text, i)
+
+    if b1 < 128 then
+      table.insert(result, b1)
+      i = i + 1
+    elseif i < #text then
+      local b2 = string.byte(text, i + 1)
+      local key = b1 * 256 + b2
+
+      local unicode_char = UTF8_TABLE[key]
+      if unicode_char then
+        table.insert(result, unicode_char)
+      else
+        table.insert(result, b1)
+      end
+      i = i + 2
+    else
+      table.insert(result, b1)
+      i = i + 1
+    end
+  end
+  return result
+end
+
+--- Converts hexadecimal color code to RGB values
+-- @param hex Hex color string (e.g., "#FF0000" or "F00")
+-- @return number Red component (0-1)
+-- @return number Green component (0-1)
+-- @return number Blue component (0-1)
+local function hexToRGB(hex)
+  hex = hex:gsub("#", "")
+  
+  if #hex == 3 then
+    hex = hex:gsub(".", function(c) return c .. c end)
+  elseif #hex ~= 6 then
+    return 1.0, 1.0, 1.0
+  end
+  
+  local r = tonumber(hex:sub(1, 2), 16) / 255
+  local g = tonumber(hex:sub(3, 4), 16) / 255
+  local b = tonumber(hex:sub(5, 6), 16) / 255
+  
+  return r, g, b
+end
+
+--- Smooth step easing function for animations
+-- @param t Time value (0-1)
+-- @return number Eased value (0-1)
+local function smoothStep(t)
+  return 1 - math.pow(1 - t, 3)
+end
+
+--- Loads and crops a single emoji from a spritesheet image
+-- @param emojiCode String emoji code (e.g., ":smile:")
+-- @param spritesheet Image object containing the emoji spritesheet
+-- @return Image|nil Cropped emoji image or nil if not found
+local function loadEmojiFromSpritesheet(emojiCode, spritesheet)
+  if not spritesheet then
+    return nil
+  end
+
+  if cachedEmojiImages[emojiCode] then
+    return cachedEmojiImages[emojiCode]
+  end
+
+  local emojiIndex = EMOJI_SPRITESHEET_MAP[emojiCode]
+  if not emojiIndex then
+    return nil
+  end
+
+  local cols = SPRITE_COLS
+  local rows = SPRITE_ROWS
+  local emojiSize = math.floor(spritesheet.Width / cols)
+
+  local col = emojiIndex % cols
+  local row = math.floor(emojiIndex / cols)
+
+  local cropX = col * emojiSize
+  local cropY = spritesheet.Height - (row * emojiSize) - emojiSize
+
+  local croppedEmoji = Image({
+    IMG_Height = emojiSize,
+    IMG_Width = emojiSize
+  })
+  spritesheet:Crop(croppedEmoji, {
+    CROP_XOffset = cropX,
+    CROP_YOffset = cropY
+  })
+  
+  cachedEmojiImages[emojiCode] = croppedEmoji
+  return croppedEmoji
+end
+
+--- Calculates the width of text in normalized coordinates
+-- @param text String to measure
+-- @param tfm_local Font metrics object
+-- @param size Font size in normalized coordinates
+-- @return number Width of text in normalized coordinates
+local function calculateTextWidth(text, tfm_local, size)
+  local width = 0
+  local unicode_chars = decodeUTF8(text)
+  
+  for _, ch in ipairs(unicode_chars) do
+    local char_width = tfm_local:CharacterWidth(ch)
+    if char_width then
+      width = width + char_width * 10 * size
+    end
+  end
+  
+  return width
+end
+
+--- Retrieves a cached font object or creates one if not cached
+-- @param font Font name string
+-- @param style Font style string
+-- @return Font object
+local function getCachedFont(font, style)
+  local key = font .. "_" .. (style or "")
+  if not cachedFonts[key] then
+    cachedFonts[key] = TextStyleFont(font, style)
+  end
+  return cachedFonts[key]
+end
+
+--- Retrieves cached font metrics or creates them if not cached
+-- @param font Font name string
+-- @param style Font style string
+-- @return FontMetrics object
+local function getCachedFontMetrics(font, style)
+  local key = font .. "_" .. (style or "")
+  if not cachedFontMetrics[key] then
+    local font_obj = getCachedFont(font, style)
+    cachedFontMetrics[key] = TextStyleFontMetrics(font_obj)
+  end
+  return cachedFontMetrics[key]
+end
+
+--- Parses chat messages from input text
+-- Supports formats: "Nick: message", "{Nick=#color}: message", "[+delay] message"
+-- @param text Multi-line string containing chat messages
+-- @return Array of parsed message objects with time, nick, color, and text
+local function parseMessages(text)
+  local messages = {}
+  local currentMsgTime = 0
+  
+  for line in string.gmatch(text, "[^\r\n]+") do
+    local delay, content = string.match(line, "^%[%+(%d+)%]%s*(.*)$")
+    if delay then
+      currentMsgTime = currentMsgTime + (tonumber(delay) / 1000)
+    else
+      content = line
+    end
+    
+    if not content or content == "" then
+      goto continue
+    end
+    
+    local nick, color, message = string.match(content, "^{([^=}]+)=([^}]+)}:%s*(.*)$")
+    if nick and color and message then
+      local r, g, b = hexToRGB(color)
+      table.insert(messages, {
+        time = currentMsgTime, 
+        nick = nick,
+        nick_color = {r = r, g = g, b = b},
+        message = message,
+        has_colored_nick = true
+      })
+      goto continue
+    end
+    
+    local simple_nick, simple_message = string.match(content, "^([^:]+):%s*(.*)$")
+    if simple_nick and simple_message then
+      table.insert(messages, {
+        time = currentMsgTime,
+        nick = simple_nick,
+        nick_color = {r = 1, g = 1, b = 1},
+        message = simple_message,
+        has_colored_nick = false
+      })
+      goto continue
+    end
+    
+    table.insert(messages, {
+      time = currentMsgTime,
+      text = content,
+      has_colored_nick = false
+    })
+    
+    ::continue::
+  end
+  
+  return messages
+end
+
+--- Returns cached parsed messages or parses new text
+-- @param text Input text string
+-- @return Array of parsed message objects
+local function getMessages(text)
+  if cachedText ~= text then
+    cachedText = text
+    cachedMessages = parseMessages(text)
+  end
+  return cachedMessages
+end
+
+--- Parses text and separates regular text from emoji codes
+-- @param text Input string that may contain emoji codes
+-- @return Array of parts with type "text" or "emoji"
+local function parseTextWithEmoji(text)
+  local parts = {}
+  local pos = 1
+  
+  while pos <= #text do
+    local foundEmoji = false
+    local earliestStart = #text + 1
+    local foundCode = nil
+
+    for emojiCode, _ in pairs(EMOJI_SPRITESHEET_MAP) do
+      local startPos = string.find(text, emojiCode, pos, true)
+      if startPos and startPos < earliestStart then
+        earliestStart = startPos
+        foundCode = emojiCode
+        foundEmoji = true
+      end
+    end
+    
+    if foundEmoji then
+      if earliestStart > pos then
+        local textPart = string.sub(text, pos, earliestStart - 1)
+        if textPart ~= "" then
+          table.insert(parts, {
+            type = "text",
+            content = textPart
+          })
+        end
+      end
+      
+      table.insert(parts, {
+        type = "emoji",
+        content = foundCode
+      })
+      
+      pos = earliestStart + #foundCode
+    else
+      local textPart = string.sub(text, pos)
+      if textPart ~= "" then
+        table.insert(parts, {
+          type = "text",
+          content = textPart
+        })
+      end
+      break
+    end
+  end
+  
+  if #parts == 0 and text ~= "" then
+    table.insert(parts, {
+      type = "text",
+      content = text
+    })
+  end
+  
+  return parts
+end
+
+--- Calculates the total width of a line containing text and emoji
+-- @param lineParts Array of line parts (text or emoji)
+-- @param tfm Font metrics object
+-- @param size Font size in normalized coordinates
+-- @return number Total width in normalized coordinates
+local function calculateLineWidth(lineParts, tfm, size)
+  local totalWidth = 0
+  local emojiSize = EMOJI_TARGET_MUlTIPLIER * size
+
+  for _, part in ipairs(lineParts) do
+    if part.type == "text" then
+      totalWidth = totalWidth + calculateTextWidth(part.content, tfm, size)
+    elseif part.type == "emoji" then
+      totalWidth = totalWidth + emojiSize
+    end
+  end
+
+  return totalWidth
+end
+
+--- Renders text to image using Fusion's vector text system
+-- @param img Target image
+-- @param font_name Font family name
+-- @param style Font style
+-- @param size Font size in normalized coordinates
+-- @param justify Justification (0=left, 1=center, 2=right)
+-- @param quality Render quality
+-- @param x X position in normalized coordinates
+-- @param y Y position in normalized coordinates
+-- @param colour Pixel color object
+-- @param text Text string to render
+function drawstring(img, font_name, style, size, justify, quality, x, y, colour, text)
+  local ic = ImageChannel(img, quality)
+  local fs = FillStyle()
+  local cs = ChannelStyle()
+  cs.Color = colour
+
+  ic:SetStyleFill(fs)
+  
+  local font = getCachedFont(font_name, style)
+  local tfm = getCachedFontMetrics(font_name, style)
+  
+  local line_height = (tfm.TextAscent + tfm.TextDescent + tfm.TextExternalLeading) * 10 * size
+  local x_move = 0
+  local mat = Matrix4()
+  mat:Scale(1.0/tfm.Scale, 1.0/tfm.Scale, 1.0)
+  mat:Scale(size, size, 1)
+
+  local sh, ch, prevch
+  local shape = Shape()
+  mat:Move(x, y, 0)
+
+  text = tostring(text)
+
+  for line in string.gmatch(text, "%C+") do
+    local unicode_chars = decodeUTF8(line)
+    local line_width = calculateTextWidth(line, tfm, size)
+
+    if justify == 0 then
+    elseif justify == 1 then
+      mat:Move(-line_width/2, 0, 0)
+    elseif justify == 2 then
+      mat:Move(-line_width, 0, 0)
+    end
+
+    for i, ch in ipairs(unicode_chars) do
+      local cw = tfm:CharacterWidth(ch)*10*size
+      
+      if i > 1 then
+        local prev_ch = unicode_chars[i-1]
+        x_offset = tfm:CharacterKerning(prev_ch, ch)*10*size
+        x_move = x_move + x_offset
+        mat:Move(x_offset, 0, 0)
+      end
+      
+      mat:Move(cw/2, 0, 0)
+
+      if ch ~= 32 then
+        sh = tfm:GetCharacterShape(ch, false)
+        if sh then
+          sh = sh:TransformOfShape(mat)
+          shape:AddShape(sh)
+        end
+      end
+      
+      mat:Move(cw/2, 0, 0)
+      x_move = x_move + cw
+    end
+    
+    if justify == 0 then
+      mat:Move(-x_move, -line_height, 0)
+    elseif justify == 1 then
+      mat:Move(-x_move/2, -line_height, 0)
+    elseif justify == 2 then
+      mat:Move(0, -line_height, 0)
+    end
+    x_move = 0
+  end
+  
+  ic:ShapeFill(shape)
+  ic:PutToImage("CM_Merge", cs)
+end
+
+--- Wraps text to fit within specified width, handling both text and emoji
+-- @param text Input string
+-- @param tfm Font metrics object
+-- @param size Font size in normalized coordinates
+-- @param maxWidth Maximum line width in normalized coordinates
+-- @return Array of lines, each containing an array of parts (text/emoji)
+local function wrapText(text, tfm, size, maxWidth)
+  if not text or text == "" or not maxWidth or maxWidth <= 0 then
+    return {{type = "text", content = text or ""}}
+  end
+  
+  local parts = parseTextWithEmoji(text)
+  local lines = {}
+  local currentLineParts = {}
+  local currentWidth = 0
+  local emojiSize = EMOJI_TARGET_MUlTIPLIER * size
+  local spaceWidth = calculateTextWidth(" ", tfm, size)
+  
+  for _, part in ipairs(parts) do
+    if part.type == "text" then
+      local words = {}
+      for word in string.gmatch(part.content, "%S+") do
+        table.insert(words, word)
+      end
+      
+      for i, word in ipairs(words) do
+        local wordWidth = calculateTextWidth(word, tfm, size)
+        local needSpace = (#currentLineParts > 0 and currentLineParts[#currentLineParts].needSpace)
+        local spaceNeeded = needSpace and spaceWidth or 0
+        
+        if currentWidth + spaceNeeded + wordWidth <= maxWidth then
+          if needSpace then
+            table.insert(currentLineParts, {type = "text", content = " "})
+            currentWidth = currentWidth + spaceWidth
+          end
+          table.insert(currentLineParts, {type = "text", content = word, needSpace = true})
+          currentWidth = currentWidth + wordWidth
+        else
+          if #currentLineParts > 0 then
+            table.insert(lines, currentLineParts)
+            currentLineParts = {}
+            currentWidth = 0
+          end
+          table.insert(currentLineParts, {type = "text", content = word, needSpace = true})
+          currentWidth = wordWidth
+        end
+      end
+      
+    elseif part.type == "emoji" then
+      local needSpace = (#currentLineParts > 0 and currentLineParts[#currentLineParts].needSpace)
+      local spaceNeeded = needSpace and spaceWidth or 0
+      
+      if currentWidth + spaceNeeded + emojiSize <= maxWidth then
+        if needSpace then
+          table.insert(currentLineParts, {type = "text", content = " "})
+          currentWidth = currentWidth + spaceWidth
+        end
+        table.insert(currentLineParts, {type = "emoji", content = part.content, needSpace = true})
+        currentWidth = currentWidth + emojiSize
+      else
+        if #currentLineParts > 0 then
+          table.insert(lines, currentLineParts)
+          currentLineParts = {}
+          currentWidth = 0
+        end
+        table.insert(currentLineParts, {type = "emoji", content = part.content, needSpace = true})
+        currentWidth = emojiSize
+      end
+    end
+  end
+  
+  if #currentLineParts > 0 then
+    table.insert(lines, currentLineParts)
+  end
+  
+  return lines
+end
+
+--- Calculates how many lines a message will occupy when rendered
+-- @param msg Message object containing nick and/or text
+-- @param nick_font Nickname font name
+-- @param nick_style Nickname font style
+-- @param msg_font Message font name
+-- @param msg_style Message font style
+-- @param size Font size in normalized coordinates
+-- @param maxWidth Maximum width in normalized coordinates
+-- @return number Number of lines the message will use
+local function calculateMessageLines(msg, nick_font, nick_style, msg_font, msg_style, size, maxWidth)
+  if msg.nick then
+    local nick_tfm = getCachedFontMetrics(nick_font, nick_style)
+    local nick_text = msg.nick .. ": "
+    local nick_width = calculateTextWidth(nick_text, nick_tfm, size)
+    local availableWidth = maxWidth - nick_width
+    local lines = wrapText(msg.message, getCachedFontMetrics(msg_font, msg_style), size, availableWidth)
+    return #lines
+  elseif msg.text then
+    local lines = wrapText(msg.text, getCachedFontMetrics(msg_font, msg_style), size, maxWidth)
+    return #lines
+  end
+  return 1
+end
+
+--- Renders a single line of text that may contain emoji
+-- @param img Target image
+-- @param nick_font Nickname font name
+-- @param nick_style Nickname font style
+-- @param msg_font Message font name
+-- @param msg_style Message font style
+-- @param size Font size in normalized coordinates
+-- @param justify Text justification (0=left, 1=center, 2=right)
+-- @param quality Render quality
+-- @param x X position in normalized coordinates
+-- @param y Y position in normalized coordinates
+-- @param color Text color pixel
+-- @param lineParts Array of line parts (text/emoji)
+-- @param comp_width Composition width in pixels
+-- @param comp_height Composition height in pixels
+-- @param emojiSpritesheet Emoji spritesheet image
+local function drawLineWithEmoji(img, nick_font, nick_style, msg_font, msg_style, size, justify, quality, x, y, color, lineParts, comp_width, comp_height, emojiSpritesheet)
+  local msg_tfm = getCachedFontMetrics(msg_font, msg_style)
+
+  local w = comp_width or img.Width
+  local h = comp_height or img.Height
+  local hasEmoji = false
+  for _, part in ipairs(lineParts) do
+    if part.type == "emoji" then
+      hasEmoji = true
+      break
+    end
+  end
+
+  if not hasEmoji then
+    local text = ""
+    for _, part in ipairs(lineParts) do
+      text = text .. part.content
+    end
+    drawTextWithShadow(img, msg_font, msg_style, size, justify, quality, x, y, color, text)
+    return
+  end
+
+  local totalWidth = calculateLineWidth(lineParts, msg_tfm, size)
+  local currentX = x
+  if justify == 1 then
+    currentX = x - totalWidth / 2
+  elseif justify == 2 then
+    currentX = x - totalWidth
+  end
+
+  for partIndex, part in ipairs(lineParts) do
+    if part.type == "text" then
+      drawTextWithShadow(img, msg_font, msg_style, size, 0, quality, currentX, y, color, part.content)
+      local textWidth = calculateTextWidth(part.content, msg_tfm, size)
+      currentX = currentX + textWidth
+    elseif part.type == "emoji" then
+      if emojiSpritesheet then
+        local singleEmoji = loadEmojiFromSpritesheet(part.content, emojiSpritesheet)
+        local tartgetEmojiSize = math.floor(EMOJI_TARGET_MUlTIPLIER * w * size)
+        local scale = tartgetEmojiSize / singleEmoji.Width
+
+        local emojiNormSize = (singleEmoji.Width * scale) / w
+        local emojiHalfSize = emojiNormSize / 2
+        local textHeight = msg_tfm.TextAscent * 10 * size
+
+        local normalizedY = (y * (w * img.XScale) / (h * img.YScale)) + textHeight / 4
+        local positionedX = currentX + emojiHalfSize
+        img:Merge(singleEmoji, {
+          MO_XOffset = positionedX,
+          MO_YOffset = normalizedY,
+          MO_XSize = scale,
+          MO_ApplyMode = "Merge",
+        })
+
+        currentX = currentX + emojiNormSize
+      end
+
+    end
+  end
+end
+
+--- Renders text with a shadow effect
+-- @param img Target image
+-- @param font Font name
+-- @param style Font style
+-- @param size Font size in normalized coordinates
+-- @param justify Text justification (0=left, 1=center, 2=right)
+-- @param quality Render quality
+-- @param x X position in normalized coordinates
+-- @param y Y position in normalized coordinates
+-- @param color Text color pixel
+-- @param text Text string to render
+-- @param shadow_offset_x (optional) Shadow X offset
+-- @param shadow_offset_y (optional) Shadow Y offset
+-- @param shadow_color (optional) Shadow color pixel
+function drawTextWithShadow(img, font, style, size, justify, quality, x, y, color, text, shadow_offset_x, shadow_offset_y, shadow_color)
+  shadow_offset_x = shadow_offset_x or SHADOW_OFFSET_X
+  shadow_offset_y = shadow_offset_y or SHADOW_OFFSET_Y
+  shadow_color = shadow_color or Pixel{R=0, G=0, B=0, A=SHADOW_ALPHA}
+  
+  drawstring(img, font, style, size, justify, quality, x + shadow_offset_x, y + shadow_offset_y, shadow_color, text)
+  drawstring(img, font, style, size, justify, quality, x, y, color, text)
+end
+
+--- Renders a complete chat message with nickname and text wrapping
+-- @param img Target image
+-- @param nick_font Nickname font name
+-- @param nick_style Nickname font style
+-- @param msg_font Message font name
+-- @param msg_style Message font style
+-- @param size Font size in normalized coordinates
+-- @param justify Text justification (0=left, 1=center, 2=right)
+-- @param quality Render quality
+-- @param x X position in normalized coordinates
+-- @param y Y position in normalized coordinates
+-- @param base_color Message text color pixel
+-- @param nick Nickname string (nil for messages without nickname)
+-- @param nick_color Nickname color table {r, g, b}
+-- @param message Message text
+-- @param maxWidth Maximum width for text wrapping
+-- @param lineSpacing Line spacing multiplier
+-- @param comp_width Composition width in pixels
+-- @param comp_height Composition height in pixels
+-- @param emojiSpritesheet Emoji spritesheet image
+function drawChatMessage(img, nick_font, nick_style, msg_font, msg_style, size, justify, quality, x, y, base_color, nick, nick_color, message, maxWidth, lineSpacing, comp_width, comp_height, emojiSpritesheet)
+  if not nick then
+    local msg_tfm = getCachedFontMetrics(msg_font, msg_style)
+    local lines = wrapText(message, msg_tfm, size, maxWidth)
+    local baseLineHeight = (msg_tfm.TextAscent + msg_tfm.TextDescent + msg_tfm.TextExternalLeading) * 10 * size
+    
+    local totalHeight = (#lines - 1) * baseLineHeight * lineSpacing
+    local startY = y + totalHeight
+    
+    for i, lineParts in ipairs(lines) do
+      local lineY = startY - (i - 1) * baseLineHeight * lineSpacing
+      drawLineWithEmoji(img, msg_font, msg_style, msg_font, msg_style, size, justify, quality, x, lineY, base_color, lineParts, comp_width, comp_height, emojiSpritesheet)
+    end
+    return
+  end
+
+  local nick_tfm = getCachedFontMetrics(nick_font, nick_style)
+  local msg_tfm = getCachedFontMetrics(msg_font, msg_style)
+ 
+  local nick_text = nick .. ": "
+  local nick_width = calculateTextWidth(nick_text, nick_tfm, size)
+  local nick_pixel = Pixel{R = nick_color.r, G = nick_color.g, B = nick_color.b, A = base_color.A}
+  
+  local availableWidth = maxWidth - nick_width
+  local lines = wrapText(message, msg_tfm, size, availableWidth)
+  local baseLineHeight = (msg_tfm.TextAscent + msg_tfm.TextDescent + msg_tfm.TextExternalLeading) * 10 * size
+  
+  local totalHeight = (#lines - 1) * baseLineHeight * lineSpacing
+  local startY = y + totalHeight
+  
+  if justify == 0 then
+    drawTextWithShadow(img, nick_font, nick_style, size, 0, quality, x, startY, nick_pixel, nick_text)
+    
+    for i, lineParts in ipairs(lines) do
+      local lineY = startY - (i - 1) * baseLineHeight * lineSpacing
+      local lineX = i == 1 and (x + nick_width) or x
+      drawLineWithEmoji(img, nick_font, nick_style, msg_font, msg_style, size, 0, quality, lineX, lineY, base_color, lineParts, comp_width, comp_height, emojiSpritesheet)
+    end
+   
+  elseif justify == 1 then
+    for i, lineParts in ipairs(lines) do
+      local lineY = startY - (i - 1) * baseLineHeight * lineSpacing
+      
+      if i == 1 then
+        local line_width = calculateLineWidth(lineParts, msg_tfm, size)
+        local total_width = nick_width + line_width
+        local start_x = x - total_width / 2
+        
+        drawTextWithShadow(img, nick_font, nick_style, size, 0, quality, start_x, lineY, nick_pixel, nick_text)
+        drawLineWithEmoji(img, nick_font, nick_style, msg_font, msg_style, size, 0, quality, start_x + nick_width, lineY, base_color, lineParts, comp_width, comp_height, emojiSpritesheet)
+      else
+        drawLineWithEmoji(img, nick_font, nick_style, msg_font, msg_style, size, 1, quality, x, lineY, base_color, lineParts, comp_width, comp_height, emojiSpritesheet)
+      end
+    end
+   
+  else -- justify == 2 (right)
+    for i, lineParts in ipairs(lines) do
+      local lineY = startY - (i - 1) * baseLineHeight * lineSpacing
+      
+      if i == 1 then
+        local line_width = calculateLineWidth(lineParts, msg_tfm, size)
+        local total_width = nick_width + line_width
+        local start_x = x - total_width
+        
+        drawTextWithShadow(img, nick_font, nick_style, size, 0, quality, start_x, lineY, nick_pixel, nick_text)
+        drawLineWithEmoji(img, nick_font, nick_style, msg_font, msg_style, size, 0, quality, start_x + nick_width, lineY, base_color, lineParts, comp_width, comp_height, emojiSpritesheet)
+      else
+        drawLineWithEmoji(img, nick_font, nick_style, msg_font, msg_style, size, 2, quality, x, lineY, base_color, lineParts, comp_width, comp_height, emojiSpritesheet)
+      end
+    end
+  end
+end
+
+--- Main render function called for each frame
+-- Handles message timing, animation, caching, and rendering
+-- @param req Request object containing render information
+function Process(req)
+  local p = (self.Comp and self.Comp:GetPrefs("Comp.FrameFormat")) or {}
+  local w = p.Width or 1920
+  local h = p.Height or 1080
+  local emojiSpritesheet = nil
+
+  local inputs = {
+    nick_font = InNickFont:GetValue(req).Value,
+    nick_style = InNickFontStyle:GetValue(req).Value,
+    msg_font = InMessageFont:GetValue(req).Value,
+    msg_style = InMessageFontStyle:GetValue(req).Value,
+    text = InText:GetValue(req).Value,
+    fontSizePixels = InFontSize:GetValue(req).Value,
+    startDelay = InStartDelay:GetValue(req).Value or 0,
+    maxMessages = InMaxMessages:GetValue(req).Value or 5,
+    lineSpacing = InLineSpacing:GetValue(req).Value,
+    center = InPosition:GetValue(req),
+    areaWidthPixels = InAreaWidth:GetValue(req).Value,
+    areaHeightPixels = InAreaHeight:GetValue(req).Value,
+    justify = InJustify:GetValue(req).Value,
+    r = InR:GetValue(req).Value,
+    g = InG:GetValue(req).Value,
+    b = InB:GetValue(req).Value,
+    a = InA:GetValue(req).Value
+  }
+
+  pcall(function()
+    local source = InEmojiSpritesheet:GetSource(req.Time)
+    if source then
+      local value = InEmojiSpritesheet:GetValue(req)
+      if value and value.Width and value.Height then
+        emojiSpritesheet = value
+      end
+    end
+  end)
+  
+  local allMessages = getMessages(inputs.text)
+  
+  local comp_prefs = (self.Comp and self.Comp:GetPrefs("Comp.FrameFormat")) or {}
+  local fps = comp_prefs.Rate or 25
+  local currentTime = (req.Time / fps) - (inputs.startDelay / 1000)
+  local visibleMessages = {}
+  for _, msg in ipairs(allMessages) do
+    if currentTime >= msg.time then
+      table.insert(visibleMessages, msg)
+    end
+  end
+  
+  if #visibleMessages > lastVisibleCount and lastVisibleCount > 0 then
+    animationStartTime = currentTime
+    isAnimating = true
+  elseif #visibleMessages < lastVisibleCount then
+    isAnimating = false
+  end
+  
+  lastVisibleCount = #visibleMessages
+  
+  local animationProgress = 1.0
+  if isAnimating and animationStartTime >= 0 then
+    local timeSinceStart = currentTime - animationStartTime
+    if timeSinceStart < animationDuration then
+      animationProgress = smoothStep(timeSinceStart / animationDuration)
+    else
+      isAnimating = false
+    end
+  end
+  
+  if req:IsQuick() then
+    animationProgress = 1.0
+    isAnimating = false
+  end
+  
+  local currentParams = createParamsSignature(inputs, visibleMessages)
+  currentParams.animationProgress = animationProgress
+  
+  local needsRerender = paramsChanged(currentParams, lastRenderParams) or isAnimating
+  
+  if needsRerender then
+    local out = Image({ Width = w, Height = h, Channels = "RGBA", Depth = 16 })
+    out:Fill(Pixel({R=0, G=0, B=0, A=0}))
+
+    local areaWidth = inputs.areaWidthPixels / w
+    local areaHeight = inputs.areaHeightPixels / h
+    local size = inputs.fontSizePixels / w
+    local quality = req:IsQuick() and 4 or (inputs.fontSizePixels <= 16 and 16 or 32)
+
+    local finalMessages = {}
+    local startIndex = math.max(1, #visibleMessages - inputs.maxMessages + 1)
+    for i = startIndex, #visibleMessages do
+      table.insert(finalMessages, visibleMessages[i])
+    end
+    
+    if not next(FontManager:GetFontList()) then
+      FontManager:ScanDir()
+    end
+    
+    local reversedMessages = {}
+    for i = #finalMessages, 1, -1 do
+      table.insert(reversedMessages, finalMessages[i])
+    end
+    
+    local tfm = getCachedFontMetrics(inputs.msg_font, inputs.msg_style)
+    local baseLineHeight = (tfm.TextAscent + tfm.TextDescent + tfm.TextExternalLeading) * 10 * size
+    
+    local animationOffset = 0
+    if isAnimating then
+      local newMessageHeight = baseLineHeight * inputs.lineSpacing
+      animationOffset = -newMessageHeight * (1 - animationProgress)
+    end
+    
+    local yOffset = animationOffset
+    
+    local topEdgeNorm = inputs.center.Y - areaHeight / 2
+    local bottomEdgeNorm = inputs.center.Y + areaHeight / 2
+    local topEdge = topEdgeNorm * (h * out.YScale) / (w * out.XScale)
+    local bottomEdge = bottomEdgeNorm * (h * out.YScale) / (w * out.XScale)
+    
+    for i, msg in ipairs(reversedMessages) do
+      local cx
+      if inputs.justify == 0 then
+        cx = inputs.center.X - areaWidth / 2
+      elseif inputs.justify == 1 then
+        cx = inputs.center.X
+      else
+        cx = inputs.center.X + areaWidth / 2
+      end
+      
+      local maxWidthNormalized = areaWidth
+      local linesUsed = calculateMessageLines(msg, inputs.nick_font, inputs.nick_style,
+                                             inputs.msg_font, inputs.msg_style,
+                                             size, maxWidthNormalized)
+      
+      local messageHeight = linesUsed * baseLineHeight * inputs.lineSpacing
+      local cy = topEdge + yOffset
+      
+      local messageTop = cy + (linesUsed - 1) * baseLineHeight * inputs.lineSpacing
+      local messageBottom = cy
+      
+      if messageBottom <= bottomEdge and messageTop >= topEdge then
+        local base_color = Pixel{R=inputs.r, G=inputs.g, B=inputs.b, A=inputs.a}
+        
+        if msg.nick then
+          drawChatMessage(out, inputs.nick_font, inputs.nick_style, inputs.msg_font, inputs.msg_style,
+                         size, inputs.justify, quality, cx, cy,
+                         base_color, msg.nick, msg.nick_color, msg.message, maxWidthNormalized, inputs.lineSpacing, w, h, emojiSpritesheet)
+        else
+          drawChatMessage(out, inputs.msg_font, inputs.msg_style, inputs.msg_font, inputs.msg_style,
+                         size, inputs.justify, quality, cx, cy, base_color, nil, nil, msg.text, maxWidthNormalized, inputs.lineSpacing, w, h, emojiSpritesheet)
+        end
+      end
+      
+      yOffset = yOffset + messageHeight
+      
+      if messageBottom > bottomEdge then
+        break
+      end
+    end
+    
+    cachedImage = out
+    lastRenderParams = currentParams
+    
+    OutImage:Set(req, out)
+  else
+    if cachedImage then
+      OutImage:Set(req, cachedImage)
+    else
+      local out = Image({ Width = w, Height = h, Channels = "RGBA", Depth = 16 })
+      out:Fill(Pixel({R=0, G=0, B=0, A=0}))
+      OutImage:Set(req, out)
+    end
+  end
+end
+
+--- Cleanup function called when Fuse is closed
+-- Clears all caches and resets state variables
+function OnClose()
+  cachedText = nil
+  cachedMessages = nil
+  cachedFontMetrics = {}
+  cachedFonts = {}
+  cachedImage = nil
+  lastRenderParams = {}
+  cachedEmojiImages = {}
+  lastVisibleCount = 0
+  animationStartTime = -1
+  isAnimating = false
+end

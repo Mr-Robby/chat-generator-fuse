@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Source emoji files (can be re-downloaded)
+assets/noto-emoj/
+
+# Generated emoji files (can be regenerated from scripts)
+assets/emoji/
+
+# Keep the generated outputs for convenience
+!assets/emoji_spritesheet.png
+!assets/emoji_map.lua
